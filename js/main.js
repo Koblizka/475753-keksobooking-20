@@ -59,17 +59,17 @@ var getAvatarAddress = function (number) {
   return 'img/avatars/user' + (number < 10 ? '0' + number : number) + '.png';
 };
 
-// Возвращает псевдорандомное чилсо в заданном диапозоне
+// Возвращает число в заданном диапозоне
 var getRandomNumber = function (min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 };
 
 // Возвращает рандомное значение
 var getRandomElement = function (object) {
-  return object[getRandomNumber(0, object.length)];
+  return object[getRandomNumber(0, object.length - 1)];
 };
 
-// Перемещивание Фишера-Йетса
+// Перемешивание Фишера-Йетса
 var shuffleFisherYets = function (array) {
   var j = 0;
   var temp = 0;
@@ -146,19 +146,89 @@ var preparePin = function (pinData) {
   return pinTemplate;
 };
 
-// Рендер пинов на странице
-var renderPins = function (pinSetup) {
-  var fragmentPin = document.createDocumentFragment();
+// Рендер елемента на странице
+var render = function (items, targetElement, templateFunction) {
+  var fragment = document.createDocumentFragment();
 
-  for (var i = 0; i < pinSetup.length; i += 1) {
-    var pin = preparePin(pinSetup[i]).cloneNode(true);
-    fragmentPin.appendChild(pin);
+  for (var i = 0; i < items.length; i += 1) {
+    var item = templateFunction(items[i]).cloneNode(true);
+    fragment.appendChild(item);
   }
 
-  document.querySelector('.map__pins').appendChild(fragmentPin);
+  document.querySelector(targetElement).appendChild(fragment);
 };
 
 // Вызываем рендер пинов
-renderPins(offers);
+render(offers, '.map__pins', preparePin);
 
-// Кстати, для перетасовки массива можно попрактиковаться в использовании алгоритма Фишера-Йетса. Почитай теорию по нему. Он простой.
+var cardTemplate = document.querySelector('#card').content.querySelector('.map__card');
+
+var houseTypes = {
+  'flat': 'Квартира',
+  'bungalo': 'Бунгало',
+  'house': 'Дом',
+  'palace': 'Дворец'
+};
+
+
+var card = {
+  title: cardTemplate.querySelector('.popup__title'),
+  address: cardTemplate.querySelector('.popup__text--address'),
+  price: cardTemplate.querySelector('.popup__text--price'),
+  type: cardTemplate.querySelector('.popup__type'),
+  capacity: cardTemplate.querySelector('.popup__text--capacity'),
+  time: cardTemplate.querySelector('.popup__text--time'),
+  features: cardTemplate.querySelector('.popup__features'),
+  description: cardTemplate.querySelector('.popup__description'),
+  photos: cardTemplate.querySelector('.popup__photos'),
+  avatar: cardTemplate.querySelector('.popup__avatar')
+};
+
+var getFeatures = function (featureTypes) {
+  var tempList = card.features.cloneNode(false);
+  var tempFeature = card.features.querySelector('.popup__feature--' + featureTypes);
+
+  tempFeature.textContent = featureTypes;
+  tempList.append(tempFeature);
+
+  return tempList;
+};
+
+var getPhotos = function (photosData) {
+  var tempElement = card.photos.cloneNode(false);
+  var tempPhoto = card.photos.querySelector('.popup__photo');
+
+  for (var i = 0; i < photosData.length; i += 1) {
+    tempPhoto.setAttribute('src', photosData);
+    tempElement.append(tempPhoto);
+  }
+
+  return tempElement;
+};
+
+var prepareCard = function (cardData) {
+  card.title.textContent = cardData.offer.title;
+  card.address.textContent = cardData.offer.address;
+  card.price.textContent = cardData.offer.price + '₽/ночь';
+  card.type.textContent = houseTypes[cardData.offer.type];
+  card.capacity.textContent = cardData.offer.rooms + ' комнаты для ' + cardData.offer.guests + ' гостей';
+  card.time.textContent = 'Заезд после ' + cardData.offer.checkin + ', выезд до ' + cardData.offer.checkout;
+  card.features.replaceWith(getFeatures(cardData.offer.features));
+  card.description.textContent = cardData.offer.description;
+  card.photos.replaceWith(getPhotos(cardData.offer.photos));
+  card.avatar.setAttribute('src', cardData.authors.avatar);
+
+  return card;
+};
+
+var renderCard = function () {
+  prepareCard(offers[0]);
+
+  var fragment = document.createDocumentFragment();
+
+  fragment.appendChild(cardTemplate);
+
+  document.querySelector('.map__filters-container').before(fragment);
+};
+
+renderCard();
