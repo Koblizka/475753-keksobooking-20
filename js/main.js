@@ -164,25 +164,26 @@ shuffle(offers);
 
 // Получаем ссылку на карту
 var map = document.querySelector('.map');
-// Получаем ссылку на pin
-var pin = document.querySelector('#pin');
+// Получаем ссылку на шаблон pin
+var pinTemplate = document.querySelector('#pin');
 // Получаем ссылку на блок пинов на карте
 var mapPins = document.querySelector('.map__pins');
+// Получаем ссылку на один pin
+var pin = pinTemplate.content.querySelector('.map__pin');
+// Получаем ссылку на аватарку в пине
+var pinImg = pin.querySelector('img');
 
 // Убираем затемнение с карты
 map.classList.remove('map--faded');
 
 // Подготавливаем шаблон пина
-var makePin = function (pinData) {
-  var pinTemplate = pin.content.querySelector('.map__pin');
-  var pinImg = pinTemplate.querySelector('img');
+var preparePin = function (pinData) {
+  pin.style.left = pinData.location.x - PIN_OFFSET.x + 'px';
+  pin.style.top = pinData.location.y - PIN_OFFSET.y + 'px';
+  pinImg.src = pinData.authors.avatar;
+  pinImg.alt = pinData.offer.title;
 
-  pinTemplate.setAttribute('style', 'left: ' + (pinData.location.x - PIN_OFFSET.x) + 'px; ' +
-  'top: ' + (pinData.location.y - PIN_OFFSET.y) + 'px;');
-  pinImg.setAttribute('src', pinData.authors.avatar);
-  pinImg.setAttribute('alt', pinData.offer.title);
-
-  return pinTemplate;
+  return pin;
 };
 
 // Рендер пинов на странице
@@ -190,7 +191,7 @@ var renderPins = function (pinSetups) {
   var fragmentPin = document.createDocumentFragment();
 
   for (var i = 0; i < pinSetups.length; i += 1) {
-    var tempPin = makePin(pinSetups[i]).cloneNode(true);
+    var tempPin = preparePin(pinSetups[i]).cloneNode(true);
     fragmentPin.appendChild(tempPin);
   }
 
@@ -199,5 +200,3 @@ var renderPins = function (pinSetups) {
 
 // Вызываем рендер пинов
 renderPins(offers);
-
-// Кстати, для перетасовки массива можно попрактиковаться в использовании алгоритма Фишера-Йетса. Почитай теорию по нему. Он простой.
