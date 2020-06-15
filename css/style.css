@@ -546,7 +546,7 @@ fieldset {
   cursor: pointer;
 }
 
-.ad-form-header__drop-zone:hover {
+.ad-form-header__input:not(:disabled) + .ad-form-header__drop-zone:hover {
   color: #ff5635;
 }
 
