@@ -264,4 +264,3 @@ var renderCard = function () {
 };
 
 renderCard();
-
