@@ -336,36 +336,24 @@ var RoomCapacities = {
 };
 
 var validateGuests = function () {
-  capacities.querySelectorAll('option').forEach(function (element) {
-    element.disabled = true;
+  capacities.querySelectorAll('option').forEach(function (guest) {
+    guest.disabled = true;
   });
 
-  roomNumbers.querySelectorAll('option').forEach(function (target) {
-    if (target.selected === true) {
-      var targetValue = target.value;
-      var scopedRoom = RoomCapacities[targetValue];
-      capacities.querySelector('[value="' + targetValue + '"]').selected = true;
+  roomNumbers.querySelectorAll('option').forEach(function (room) {
+    if (room.selected === true) {
+      var scopedRoom = RoomCapacities[room.value];
 
-      scopedRoom.forEach(function (room) {
-        capacities.querySelector('[value="' + room + '"]').disabled = false;
+      capacities.querySelector('[value="' + scopedRoom[0] + '"]').selected = true;
+      scopedRoom.forEach(function (scope) {
+        capacities.querySelector('[value="' + scope + '"]').disabled = false;
       });
     }
   });
-};
 
-/*
-  0. задезейблить всё
-  1. найти в селектк выбранный опшен
-  2. посмотреть его значение
-  3. сравнить его значение со словарём досутпных комнат
-  4. найти доступные варианты
-  5. найти селект гостей
-  6. перебрать селект гостей находя нужное значение 
-  7. у найденых значений ставить инейбл
-*/
+  // roomNumbers.removeEventListener('change', validateGuests);
+};
 
 validateGuests();
 
-var kkk = adForm.querySelector('#room_number');
-
-kkk.addEventListener('change', validateGuests);
+roomNumbers.addEventListener('change', validateGuests);
