@@ -167,14 +167,11 @@ var map = document.querySelector('.map');
 // Получаем ссылку на шаблон pin
 var pinTemplate = document.querySelector('#pin');
 // Получаем ссылку на блок пинов на карте
-var mapPins = document.querySelector('.map__pins');
+var mapPins = map.querySelector('.map__pins');
 // Получаем ссылку на один pin
 var pin = pinTemplate.content.querySelector('.map__pin');
 // Получаем ссылку на аватарку в пине
 var pinImg = pin.querySelector('img');
-
-// Убираем затемнение с карты
-map.classList.remove('map--faded');
 
 // Подготавливаем шаблон пина
 var preparePin = function (pinData) {
@@ -197,10 +194,7 @@ var renderPins = function (pinSetups) {
 
   mapPins.appendChild(fragmentPin);
 };
-
-// Вызываем рендер пинов
-renderPins(offers);
-
+/*
 var cardTemplate = document.querySelector('#card').content.querySelector('.map__card');
 
 var getFeatures = function (features) {
@@ -263,5 +257,115 @@ var renderCard = function () {
   document.querySelector('.map__filters-container').before(fragment);
 };
 
-renderCard();
+// Вызываем рендер карточки
+// renderCard();
+*/
 
+var mapFilters = map.querySelectorAll('.map__filter');
+var mapFeatures = map.querySelector('.map__features');
+var adForm = document.querySelector('.notice').querySelector('.ad-form');
+var adFormElements = adForm.children;
+var pinMain = mapPins.querySelector('.map__pin--main');
+
+var disableInputs = function (isDisabled) {
+  for (var i = 0; i < mapFilters.length; i++) {
+    mapFilters[i].disabled = isDisabled;
+  }
+
+  for (i = 0; i < adFormElements.length; i++) {
+    adFormElements[i].disabled = isDisabled;
+  }
+
+  mapFeatures.disabled = isDisabled;
+};
+
+// Отключаем формы на странице
+disableInputs(true);
+
+var setAddress = function (isApproximate) {
+  var pinMainCenterX = (pinMain.offsetLeft + Math.floor(pinMain.offsetWidth / 2));
+  var pinMainCenterY = (pinMain.offsetTop + Math.floor(pinMain.offsetHeight / 2));
+  var pinMainOffsetCenterY = pinMain.offsetTop + pinMain.offsetHeight + 18;
+  var address = (isApproximate) ? (pinMainCenterX + ', ' + pinMainCenterY) : (pinMainCenterX + ', ' + pinMainOffsetCenterY);
+
+  adForm.querySelector('#address').value = address;
+};
+
+// Задаёмд приблизительный адрес
+setAddress(true);
+
+// Активируем страницу
+var activatePage = function () {
+  // Убираем затемнение с карты
+  map.classList.remove('map--faded');
+  // Убираем дизейбл с формы
+  adForm.classList.remove('ad-form--disabled');
+  disableInputs(false);
+  // Вызываем рендер пинов
+  renderPins(offers);
+  // Задаём точный адрес
+  setAddress(false);
+};
+
+var onMousedownPinMain = function (evt) {
+  if (evt.button === 0) {
+    activatePage();
+  }
+
+  pinMain.removeEventListener('mousedwon', onMousedownPinMain);
+};
+
+var onKeydownMainPin = function (evt) {
+  if (evt.key === 'Enter') {
+    activatePage();
+  }
+
+  pinMain.removeEventListener('keydownn', onKeydownMainPin);
+};
+
+pinMain.addEventListener('mousedown', onMousedownPinMain);
+pinMain.addEventListener('keydown', onKeydownMainPin);
+
+var roomNumbers = adForm.querySelector('#room_number');
+var capacities = adForm.querySelector('#capacity');
+var RoomCapacities = {
+  1: [1],
+  2: [2, 1],
+  3: [3, 2, 1],
+  100: [0]
+};
+
+var validateGuests = function () {
+  capacities.querySelectorAll('option').forEach(function (element) {
+    element.disabled = true;
+  });
+
+  roomNumbers.querySelectorAll('option').forEach(function (target) {
+    if (target.selected === true) {
+      var targetValue = target.value;
+      var scopedRoom = RoomCapacities[targetValue];
+      capacities.querySelector('[value="' + targetValue + '"]').selected = true;
+
+      scopedRoom.forEach(function (room) {
+        capacities.querySelector('[value="' + room + '"]').disabled = false;
+      });
+    }
+  });
+};
+
+/*
+  0. задезейблить всё
+  1. найти в селектк выбранный опшен
+  2. посмотреть его значение
+  3. сравнить его значение со словарём досутпных комнат
+  4. найти доступные варианты
+  5. найти селект гостей
+  6. перебрать селект гостей находя нужное значение 
+  7. у найденых значений ставить инейбл
+*/
+
+validateGuests();
+
+var kkk = adForm.querySelector('#room_number');
+
+kkk.addEventListener('change', validateGuests);
