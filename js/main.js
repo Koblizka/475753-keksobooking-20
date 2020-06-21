@@ -61,14 +61,14 @@ var OFFER_TITLES = [
   'Мир, дверь, мяч!',
 ];
 var OFFER_DESCRIPTIONS = [
-  'Великолепная квартира-студия в центре Токио. Подходит как туристам, так и бизнесменам. Квартира полностью укомплектована и недавно отремонтирована',
-  'Если хочешь страдать, то ты пришёл по адресу. Ну как, хотите стать королем или королевой? Звоните!!!',
-  'Можем Мы приглашаем вас окунуться в сказочный мир в прямом смысле этого слова!»',
-  'Не „Баунти“, но тоже „райское наслаждение“…',
-  'Здание было построено в 1895 году известным архитектором для своей семьи, что объясняет качество строения. Дом расположен у холма Петржин, на берегу Влтавы, в районе Мала Страна. Петржин, без сомнения, лучшее место для тех, кто хотел бы находиться в самом центре города и наслаждаться прогулками по красивому парку.',
-  'За домом находится средневековая оборонительная стена Праги «Стена голода». О истории возникновения стены известно то, что Карл IV в 1361 году, во времена засухи и неурожая, повысил цены на хлеб. ',
+  'Великолепная квартира-студия в центре Токио.',
+  'Если хочешь страдать, то ты пришёл по адресу.',
+  'Мы приглашаем вас окунуться в сказочный мир в прямом смысле этого слова!»',
+  'Не „Баунти“, но тоже „райское наслаждение“.',
+  'Здание было построено в 1895 году известным архитектором для своей семьи, что объясняет качество строения.',
+  'За домом находится средневековая оборонительная стена Праги «Стена голода».',
   'Позже, на месте танка построили фонтан, однако его маленький кусочек до сих пор находится на площади и напоминает горожанам о действиях прошлых лет в Праге',
-  'Our holiday was wonderful. Everything needed was in the apartment. A lot of dishes, tea, coffee, sugar, salt, coffee maker. Perfect cleaning. Windows overlook the courtyard, quiet at night. Thanks you.!',
+  'Our holiday was wonderful. Everything needed was in the apartment.',
 ];
 var HouseType = {
   'flat': 'Квартира',
@@ -93,12 +93,19 @@ var avatarAddress = getAvatarAddresses();
 
 // Возвращает псевдорандомное чилсо в заданном диапозоне
 var getRandomNumber = function (min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-// Возвращает рандомное значение
+// Возвращает одно рандомное значение
 var getRandomElement = function (array) {
-  return array[getRandomNumber(0, array.length)];
+  return array[getRandomNumber(0, array.length - 1)];
+};
+
+// Возвращает пару описание в пару предложений
+var getDescription = function () {
+  var preparedSentences = shuffle(OFFER_DESCRIPTIONS).slice(0, 2);
+
+  return preparedSentences[0] + ' ' + preparedSentences[1];
 };
 
 // Перемещивание Фишера-Йетса
@@ -126,7 +133,7 @@ var makeOffer = function () {
       avatar: avatarAddress.shift()
     },
     offer: {
-      title: shuffle(OFFER_TITLES).shift(),
+      title: getRandomElement(shuffle(OFFER_TITLES)),
       address: locationX + ', ' + locationY,
       price: getRandomNumber(OFFER.prices.min, OFFER.prices.max),
       type: getRandomElement(Object.keys(HouseType)),
@@ -135,7 +142,7 @@ var makeOffer = function () {
       checkin: getRandomElement(OFFER.times),
       checkout: getRandomElement(OFFER.times),
       features: shuffle(OFFER.features).slice(0, getRandomNumber(1, OFFER.features.length)),
-      description: shuffle(OFFER_DESCRIPTIONS),
+      description: getDescription(),
       photos: shuffle(OFFER.photos).slice(0, getRandomNumber(1, OFFER.photos.length)),
     },
     location: {
@@ -167,14 +174,11 @@ var map = document.querySelector('.map');
 // Получаем ссылку на шаблон pin
 var pinTemplate = document.querySelector('#pin');
 // Получаем ссылку на блок пинов на карте
-var mapPins = document.querySelector('.map__pins');
+var mapPins = map.querySelector('.map__pins');
 // Получаем ссылку на один pin
 var pin = pinTemplate.content.querySelector('.map__pin');
 // Получаем ссылку на аватарку в пине
 var pinImg = pin.querySelector('img');
-
-// Убираем затемнение с карты
-map.classList.remove('map--faded');
 
 // Подготавливаем шаблон пина
 var preparePin = function (pinData) {
@@ -197,10 +201,7 @@ var renderPins = function (pinSetups) {
 
   mapPins.appendChild(fragmentPin);
 };
-
-// Вызываем рендер пинов
-renderPins(offers);
-
+// /*
 var cardTemplate = document.querySelector('#card').content.querySelector('.map__card');
 
 var getFeatures = function (features) {
@@ -244,7 +245,7 @@ var prepareCard = function (cardData) {
   cardTemplate.querySelector('.popup__type').textContent = HouseType[cardData.offer.type];
   cardTemplate.querySelector('.popup__text--capacity').textContent = cardData.offer.rooms + ' комнаты для ' + cardData.offer.guests + ' гостей';
   cardTemplate.querySelector('.popup__text--time').textContent = 'Заезд после ' + cardData.offer.checkin + ', выезд до ' + cardData.offer.checkout;
-  cardTemplate.querySelector('.popup__description').textContent = cardData.offer.description.shift();
+  cardTemplate.querySelector('.popup__description').textContent = cardData.offer.description;
   cardTemplate.querySelector('.popup__avatar').src = cardData.authors.avatar;
 
   getFeatures(cardData.offer.features);
@@ -253,8 +254,8 @@ var prepareCard = function (cardData) {
   return cardTemplate;
 };
 
-var renderCard = function () {
-  prepareCard(offers[0]);
+var renderCard = function (offerItem) {
+  prepareCard(offerItem);
 
   var fragment = document.createDocumentFragment();
 
@@ -263,4 +264,9 @@ var renderCard = function () {
   document.querySelector('.map__filters-container').before(fragment);
 };
 
-renderCard();
+// Вызываем рендер пинов
+renderPins(offers);
+
+// Вызываем рендер карточки
+renderCard(offers[0]);
+
