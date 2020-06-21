@@ -264,9 +264,9 @@ var renderCard = function (offerItem) {
   document.querySelector('.map__filters-container').before(fragment);
 };
 
+// Убираем затемнение с карты
+map.classList.remove('map--faded');
 // Вызываем рендер пинов
 renderPins(offers);
-
 // Вызываем рендер карточки
 renderCard(offers[0]);
-
