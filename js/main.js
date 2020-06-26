@@ -197,6 +197,9 @@ var renderPins = function (pinSetups) {
   for (var i = 0; i < pinSetups.length; i++) {
     var tempPin = preparePin(pinSetups[i]).cloneNode(true);
     fragmentPin.appendChild(tempPin);
+
+    var onClick = onClickPin(pinSetups[i]);
+    tempPin.addEventListener('click', onClick);
   }
 
   mapPins.appendChild(fragmentPin);
@@ -251,6 +254,8 @@ var prepareCard = function (cardData) {
   getFeatures(cardData.offer.features);
   getPhotos(cardData.offer.photos);
 
+  cardTemplate.querySelector('.popup__close').addEventListener('mousedown', closeCard);
+
   return cardTemplate;
 };
 
@@ -265,7 +270,7 @@ var renderCard = function (offerItem) {
 };
 
 // Вызываем рендер карточки
-renderCard(offers[0]);
+// renderCard(offers[0]);
 // */
 
 var mapFilters = map.querySelectorAll('.map__filter');
@@ -402,11 +407,17 @@ var onChangeTimeIn = function (evt) {
 timeGroup.addEventListener('change', onChangeTimeIn);
 
 // Выводим карточки по клику
-var onClickPin = function (evt) {
-  evt.preventDefault();
-  if (evt.target.className === 'map__pin') {
-    renderCard(offers[2]);
-  }
+var onClickPin = function (offerItem) {
+  return function () {
+    renderCard(offerItem);
+    document.addEventListener('keydown', closeCard);
+  };
 };
 
-// mapPins.addEventListener('click', onClickPin, false);
+var closeCard = function (evt) {
+  if (evt.key === 'Escape' || evt.button === 0) {
+    document.querySelector('.popup').remove();
+    document.removeEventListener('mousedown', closeCard);
+    document.removeEventListener('keydown', closeCard);
+  }
+};
