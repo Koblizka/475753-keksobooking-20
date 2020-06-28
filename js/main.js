@@ -49,35 +49,6 @@ var OFFER = {
     maxY: 630
   }
 };
-var OFFER_TITLES = [
-  'Вот это самый чёткий вариант',
-  'Если хочешь страдать, то ты пришёл по адресу',
-  'Можем вместе потусить — пива воспить',
-  'Чётче моей хатки, только бобровая хатка',
-  'Не забывай оглядываться когда чистишь зубы',
-  'Воздух платный, холодильник тоже',
-  'Пшек пржек, ПШЕК вржек',
-  'Мир, дверь, мяч!',
-];
-var OFFER_DESCRIPTIONS = [
-  'Великолепная квартира-студия в центре Токио. Подходит как туристам, так и бизнесменам. Квартира полностью укомплектована и недавно отремонтирована',
-  'Если хочешь страдать, то ты пришёл по адресу. Ну как, хотите стать королем или королевой? Звоните!!!',
-  'Можем Мы приглашаем вас окунуться в сказочный мир в прямом смысле этого слова!»',
-  'Не „Баунти“, но тоже „райское наслаждение“…',
-  'Здание было построено в 1895 году известным архитектором для своей семьи, что объясняет качество строения. Дом расположен у холма Петржин, на берегу Влтавы, в районе Мала Страна. Петржин, без сомнения, лучшее место для тех, кто хотел бы находиться в самом центре города и наслаждаться прогулками по красивому парку.',
-  'За домом находится средневековая оборонительная стена Праги «Стена голода». О истории возникновения стены известно то, что Карл IV в 1361 году, во времена засухи и неурожая, повысил цены на хлеб. ',
-  'Позже, на месте танка построили фонтан, однако его маленький кусочек до сих пор находится на площади и напоминает горожанам о действиях прошлых лет в Праге',
-  'Our holiday was wonderful. Everything needed was in the apartment. A lot of dishes, tea, coffee, sugar, salt, coffee maker. Perfect cleaning. Windows overlook the courtyard, quiet at night. Thanks you.!',
-];
-
-
-// Возвращает массив аватарок пользователя
-var getAvatarAddresses = function () {
-  var addresses = [];
-
-  for (var i = 1; i <= OFFERS_COUNT; i += 1) {
-    addresses.push('img/avatars/user' + i.toString().padStart(2, '0') + '.png');
-  }
 
 var OFFER_TITLES = [
   'Вот это самый чёткий вариант',
@@ -230,7 +201,7 @@ var renderPins = function (pinSetups) {
 
   mapPins.appendChild(fragmentPin);
 };
-// /*
+/*
 var cardTemplate = document.querySelector('#card').content.querySelector('.map__card');
 
 var getFeatures = function (features) {
@@ -293,9 +264,103 @@ var renderCard = function (offerItem) {
   document.querySelector('.map__filters-container').before(fragment);
 };
 
-// Убираем затемнение с карты
-map.classList.remove('map--faded');
-// Вызываем рендер пинов
-renderPins(offers);
 // Вызываем рендер карточки
-renderCard(offers[0]);
+// renderCard(offers[0]);
+ */
+
+var mapFilters = map.querySelectorAll('.map__filter');
+var mapFeatures = map.querySelector('.map__features');
+var adForm = document.querySelector('.notice').querySelector('.ad-form');
+var adFormElements = adForm.children;
+var pinMain = mapPins.querySelector('.map__pin--main');
+
+var disableInputs = function (isDisabled) {
+  for (var i = 0; i < mapFilters.length; i++) {
+    mapFilters[i].disabled = isDisabled;
+  }
+
+  for (i = 0; i < adFormElements.length; i++) {
+    adFormElements[i].disabled = isDisabled;
+  }
+
+  mapFeatures.disabled = isDisabled;
+};
+
+// Отключаем формы на странице
+disableInputs(true);
+
+var setAddress = function (isApproximate) {
+  var pinMainCenterX = (pinMain.offsetLeft + Math.floor(pinMain.offsetWidth / 2));
+  var pinMainCenterY = (pinMain.offsetTop + Math.floor(pinMain.offsetHeight / 2));
+  var pinMainOffsetCenterY = pinMain.offsetTop + pinMain.offsetHeight + 18;
+  var address = (isApproximate) ? (pinMainCenterX + ', ' + pinMainCenterY) : (pinMainCenterX + ', ' + pinMainOffsetCenterY);
+
+  adForm.querySelector('#address').value = address;
+};
+
+// Задаёмд приблизительный адрес
+setAddress(true);
+
+// Активируем страницу
+var activatePage = function () {
+  // Убираем затемнение с карты
+  map.classList.remove('map--faded');
+  // Убираем дизейбл с формы
+  adForm.classList.remove('ad-form--disabled');
+  disableInputs(false);
+  // Вызываем рендер пинов
+  renderPins(offers);
+  // Задаём точный адрес
+  setAddress(false);
+};
+
+var onMousedownPinMain = function (evt) {
+  if (evt.button === 0) {
+    activatePage();
+  }
+
+  pinMain.removeEventListener('mousedwon', onMousedownPinMain);
+};
+
+var onKeydownMainPin = function (evt) {
+  if (evt.key === 'Enter') {
+    activatePage();
+  }
+
+  pinMain.removeEventListener('keydownn', onKeydownMainPin);
+};
+
+pinMain.addEventListener('mousedown', onMousedownPinMain);
+pinMain.addEventListener('keydown', onKeydownMainPin);
+
+var roomNumber = adForm.querySelector('#room_number');
+var capacities = adForm.querySelector('#capacity');
+var RoomCapacities = {
+  1: [1],
+  2: [2, 1],
+  3: [3, 2, 1],
+  100: [0]
+};
+
+var validateGuests = function () {
+  capacities.querySelectorAll('option').forEach(function (guest) {
+    guest.disabled = true;
+  });
+
+  roomNumber.querySelectorAll('option').forEach(function (room) {
+    if (room.selected === true) {
+      var scopedRoom = RoomCapacities[room.value];
+
+      capacities.querySelector('[value="' + scopedRoom[0] + '"]').selected = true;
+      scopedRoom.forEach(function (scope) {
+        capacities.querySelector('[value="' + scope + '"]').disabled = false;
+      });
+    }
+  });
+
+  // roomNumbers.removeEventListener('change', validateGuests);
+};
+
+validateGuests();
+
+roomNumber.addEventListener('change', validateGuests);
